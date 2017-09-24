@@ -2,14 +2,15 @@ import java.io.*;
 
 class Main {
     public static void main(String[] args) {
-        BufferedReader sourceFile;
-        LexicalAnalyzer lexer = new LexicalAnalyzer();
+        PushbackReader sourceFile;
+        LexicalAnalyzer lexer;
         try {
-            sourceFile = new BufferedReader(new FileReader(args[0]));
-            lexer.Analyze(sourceFile);
+            sourceFile = new PushbackReader(new FileReader(args[0]));
+            lexer = new LexicalAnalyzer(sourceFile);
+            lexer.Analyze();
             sourceFile.close();
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
     }
-}
+}   

@@ -11,13 +11,17 @@ enum TokenType {
     DO,
     WHILE,
 
-    CONSTANT,
-    IDENTIFIER,
+    INT_CONSTANT, // digit{digit}
+    LITERAL, // "{caracter ASCII}"
+    IDENTIFIER, // letter{letter|digit}
 
-    EQUALS,
-    DIFFERENT,
-    GREATER,
-    GREATERTHAN,
-    LESS,
-    LESSTHAN
+    EQUALS, // ==
+    DIFFERENT, // !=
+    GREATER, // >
+    GREATERTHAN, // >=
+    LESS, // <
+    LESSTHAN, // <=
+    ASSIGN, // =
+    AND, // &&
+    OR, // ||
 }
