@@ -169,7 +169,7 @@ class LexicalAnalyzer {
             Token token;
             if (opToken.isPresent()) { // Check if is on token list
                 token = opToken.get();
-            }else{
+            } else {
                 token = new Token(id.toString(), TokenType.IDENTIFIER);
                 this.tokens.add(token);
             }
