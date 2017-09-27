@@ -36,12 +36,12 @@ class LexicalAnalyzer {
     private Token GetToken() throws Exception {
         // Ignore spaces and breaklines
         while (true) {
-            if(ch == ' ' || ch == '\t' || ch == '\r'){
+            if (ch == ' ' || ch == '\t' || ch == '\r'){
                 readch();
-            }else if(ch == '\n'){
+            } else if (ch == '\n'){
                 this.line++;
                 readch();
-            }else{
+            } else {
                 break;
             }
         }
@@ -55,12 +55,12 @@ class LexicalAnalyzer {
                 this.line++;
                 return this.GetToken();
 
-            } else if(this.readch('*')) { // Comment block. Ex: /* ... */
+            } else if (this.readch('*')) { // Comment block. Ex: /* ... */
                 int startLine = this.line;
                 while (this.ch != (char)-1) {
-                    if(this.ch == '\n')
+                    if (this.ch == '\n')
                         this.line++;
-                    if(this.readch('*') && this.readch('/')){
+                    if (this.readch('*') && this.readch('/')){
                         return this.GetToken();
                     }
                     this.readch();
