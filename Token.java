@@ -11,10 +11,6 @@ public class Token {
         this.type = type;
     }
 
-    Token(String value){
-        this.value = value;
-    }
-
     @Override
     public String toString() {
         if(this.type == TokenType.LITERAL || this.type == TokenType.IDENTIFIER)

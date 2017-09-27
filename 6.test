@@ -1,0 +1,8 @@
+program
+    int a, b;
+    scan(a);
+    scan (b);
+    int r = 2 * (a + b) / (b - a);
+    print ("resultado: ");
+    print(r);
+end

@@ -67,7 +67,7 @@ class LexicalAnalyzer {
                 }
                 throw new Exception("Invalid token on line " + this.line + ". Comment block started on line " + startLine + " was not closed.");
             } else {
-                return new Token("/");
+                return new Token(TokenType.DIVISION);
             }
         }
 
@@ -110,13 +110,19 @@ class LexicalAnalyzer {
                     throw new Exception("Invalid token on line " + this.line + ". Token started with '&'");
                 }
             case ';':
+                return new Token(TokenType.SEMICOLON);
             case '(':
+                return new Token(TokenType.PARENTHESES_OPEN);
             case ')':
+                return new Token(TokenType.PARENTHESES_CLOSE);
             case '+':
+                return new Token(TokenType.ADDITION);
             case '-':
+                return new Token(TokenType.SUBTRACTION);
             case '*':
+                return new Token(TokenType.MULTIPLICATION);
             case ',':
-                return new Token(String.valueOf(ch));
+                return new Token(TokenType.COMMA);
         }
 
         // Integer constants
@@ -129,7 +135,6 @@ class LexicalAnalyzer {
             } while (Character.isDigit(this.ch));
             this.sourceFile.unread(this.ch);
             this.ch = ' ';
-
             return new Num(value);
         }
 
@@ -153,14 +158,12 @@ class LexicalAnalyzer {
         // Identifier
         if (Character.isLetter(this.ch)) {
             StringBuilder id = new StringBuilder();
-
             do {
                 id.append(ch);
                 this.readch();
             } while (Character.isLetterOrDigit(this.ch));
             this.sourceFile.unread(this.ch);
             this.ch = ' ';
-
             String finalId = id.toString();
             Optional<Token> opToken = tokens.stream().filter(t -> finalId.equals(t.value)).findFirst();
             Token token;

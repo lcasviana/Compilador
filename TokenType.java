@@ -24,4 +24,13 @@ enum TokenType {
     ASSIGN, // =
     AND, // &&
     OR, // ||
+
+    SEMICOLON, // ;
+    PARENTHESES_OPEN, // (
+    PARENTHESES_CLOSE, // )
+    ADDITION, // +
+    SUBTRACTION, // -
+    MULTIPLICATION, // *
+    DIVISION, // /
+    COMMA // ,
 }
