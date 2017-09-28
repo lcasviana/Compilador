@@ -25,12 +25,18 @@ class LexicalAnalyzer {
     }
 
     void Analyze() throws Exception {
+        int l = line;
         readch();
         while (this.ch != (char) -1) {
             Token token = GetToken();
-            System.out.println(token);
+            if (l != line) {
+                System.out.println();
+                l = line;
+            }
+            System.out.print(token + " ");
             readch();
         }
+        System.out.println();
     }
     
     private Token GetToken() throws Exception {
