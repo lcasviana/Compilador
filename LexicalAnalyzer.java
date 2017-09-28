@@ -58,6 +58,7 @@ class LexicalAnalyzer {
                 while (this.ch != '\n'){
                     this.readch();
                 }
+                this.readch();
                 this.line++;
                 return this.GetToken();
 
