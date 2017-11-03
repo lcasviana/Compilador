@@ -1,121 +1,115 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 
 class LexicalAnalyzer {
-    private char ch;
-    private int line = 1;
-    private ArrayList<Token> tokens;
-    private PushbackReader sourceFile;
+    private char Ch;
+    private int Line = 1;
+    
+    private PushbackReader Stream;
 
-    LexicalAnalyzer(PushbackReader sourceFile) {
-        this.sourceFile = sourceFile;
-        this.tokens = new ArrayList<>();
-        this.tokens.add(new Token("program", TokenType.PROGRAM));
-        this.tokens.add(new Token("end", TokenType.END));
-        this.tokens.add(new Token("scan", TokenType.SCAN));
-        this.tokens.add(new Token("print", TokenType.PRINT));
-        this.tokens.add(new Token("int", TokenType.INT));
-        this.tokens.add(new Token("string", TokenType.STRING));
-        this.tokens.add(new Token("if", TokenType.IF));
-        this.tokens.add(new Token("then", TokenType.THEN));
-        this.tokens.add(new Token("else", TokenType.ELSE));
-        this.tokens.add(new Token("do", TokenType.DO));
-        this.tokens.add(new Token("while", TokenType.WHILE));
+    private Map<String, Token> SymbolTable;
+    private Map<String, Token> ReservedWords;
+    private ArrayList<Token> tokens;
+
+    LexicalAnalyzer(FileReader file) throws Exception {
+        Stream = new PushbackReader(file);
+        InitializeReservedWords();
     }
 
-    void Analyze() throws Exception {
-        int l = line;
-        readch();
-        while (this.ch != (char) -1) {
-            Token token = GetToken();
-            if (l != line) {
-                System.out.println();
-                l = line;
+    private void InitializeReservedWords() {
+        ReservedWords.put("program", new Token("program", TokenType.PROGRAM));
+        ReservedWords.put("end", new Token("end", TokenType.END));
+        ReservedWords.put("scan", new Token("scan", TokenType.SCAN));
+        ReservedWords.put("print", new Token("print", TokenType.PRINT));
+        ReservedWords.put("int", new Token("int", TokenType.INT));
+        ReservedWords.put("string", new Token("string", TokenType.STRING));
+        ReservedWords.put("if", new Token("if", TokenType.IF));
+        ReservedWords.put("then", new Token("then", TokenType.THEN));
+        ReservedWords.put("else", new Token("else", TokenType.ELSE));
+        ReservedWords.put("do", new Token("do", TokenType.DO));
+        ReservedWords.put("while", new Token("while", TokenType.WHILE));
+    }
+
+    public void Analyze() throws Exception {
+        ArrayList<Token> TokenStream = new ArrayList<>();
+        Token token;
+        while (Ch != (char) -1) {
+            token = GetToken();
+            if (token != null) {
+                TokenStream.add(token);
+                System.out.println(token);
             }
-            System.out.print(token + " ");
-            readch();
         }
-        System.out.println();
+        Stream.close();
+        // TODO: Return some shit '3'
     }
     
     private Token GetToken() throws Exception {
-        // Ignore spaces and breaklines
-        while (true) {
-            if (ch == ' ' || ch == '\t' || ch == '\r'){
-                readch();
-            } else if (ch == '\n'){
-                this.line++;
-                readch();
-            } else {
-                break;
-            }
+        ReadChar();
+        
+        // Spaces and breaklines
+        while (Ch == ' ' || Ch == '\t' || Ch == '\r' || Ch == '\n') {
+            if (Ch == '\n')
+                Line++;
+            ReadChar();
         }
 
-        // Ignore comments
-        if (this.ch == '/') {
-            if (this.readch('/')) { // Inline comments. Ex: // ...
-                while (this.ch != '\n'){
-                    this.readch();
-                }
-                this.readch();
-                this.line++;
+        // Comments and division
+        if (Ch == '/') {
+            if (ReadChar('/')) { // Inline comments. Ex: // ...
+                while (Ch != '\n')
+                    ReadChar();
+                Line++;
+                ReadChar();
                 return this.GetToken();
-
-            } else if (this.readch('*')) { // Comment block. Ex: /* ... */
-                int startLine = this.line;
-                while (this.ch != (char)-1) {
-                    if (this.ch == '\n')
-                        this.line++;
-                    if (this.readch('*') && this.readch('/')){
+            } else if (ReadChar('*')) { // Comment block. Ex: /* ... */
+                int startLine = Line;
+                while (Ch != (char) -1) {
+                    if (Ch == '\n')
+                        Line++;
+                    if (ReadChar('*') && ReadChar('/'))
                         return this.GetToken();
-                    }
-                    this.readch();
+                    ReadChar();
                 }
-                throw new Exception("Invalid token on line " + this.line + ". Comment block started on line " + startLine + " was not closed.");
-            } else {
+                throw new Exception("Invalid token on line " + Line + ". Comment block started on line " + startLine + " was not closed.");
+            } else
                 return new Token(TokenType.DIVISION);
-            }
         }
 
         // Operators
-        switch (this.ch) {
+        switch (Ch) {
             case '=':
-                if (this.readch('=')) {
+                if (ReadChar('='))
                     return new Token(TokenType.EQUALS);
-                } else {
+                else
                     return new Token(TokenType.ASSIGN);
-                }
             case '>':
-                if (this.readch('=')) {
+                if (ReadChar('='))
                     return new Token(TokenType.GREATERTHAN);
-                } else {
+                else
                     return new Token(TokenType.GREATER);
-                }
             case '<':
-                if (this.readch('=')) {
+                if (ReadChar('='))
                     return new Token(TokenType.LESSTHAN);
-                } else {
+                else
                     return new Token(TokenType.LESS);
-                }
             case '!':
-                if (this.readch('=')) {
+                if (ReadChar('='))
                     return new Token(TokenType.DIFFERENT);
-                } else {
-                    throw new Exception("Invalid token on line " + this.line + ". Token started with '!'");
-                }
+                else
+                    return new Token(TokenType.NOT);
             case '|':
-                if (this.readch('|')) {
+                if (ReadChar('|'))
                     return new Token(TokenType.OR);
-                } else {
-                    throw new Exception("Invalid token on line " + this.line + ". Token started with '|'");
-                }
+                else
+                    throw new Exception("Invalid token on line " + Line + ". Token started with '|'");
             case '&':
-                if (this.readch('&')) {
+                if (ReadChar('&'))
                     return new Token(TokenType.AND);
-                } else {
-                    throw new Exception("Invalid token on line " + this.line + ". Token started with '&'");
-                }
+                else
+                    throw new Exception("Invalid token on line " + Line + ". Token started with '&'");
             case ';':
                 return new Token(TokenType.SEMICOLON);
             case '(':
@@ -133,70 +127,75 @@ class LexicalAnalyzer {
         }
 
         // Integer constants
-        if (Character.isDigit(this.ch)) {
-            int value = 0;
+        if (Character.isDigit(Ch)) {
+            int Value = 0;
             do {
-                value *= 10;
-                value +=  Character.digit(this.ch,10);
-                this.readch();
-            } while (Character.isDigit(this.ch));
-            this.sourceFile.unread(this.ch);
-            this.ch = ' ';
-            return new Num(value);
+                Value *= 10;
+                Value += Character.digit(Ch, 10);
+            } while (ReadCharNumber());
+            return new Number(Value);
         }
 
         // Literal
-        if (this.ch == '"') {
-            StringBuilder literal = new StringBuilder();
-
-            this.readch();
-            while (this.ch != '\n' && this.ch != '"') {
-                literal.append(this.ch);
-                this.readch();
+        if (Ch == '"') {
+            StringBuilder Literal = new StringBuilder();
+            ReadChar();
+            while (Ch != '\n' && Ch != '"') {
+                Literal.append(Ch);
+                ReadChar();
             }
-            // Close literal
-            if (this.ch == '"') {
-                return new Token(literal.toString(), TokenType.LITERAL);
-            } else {
-                throw new Exception("Invalid token on line " + this.line + ". Literal not closed.");
-            }
+            if (Ch == '"')
+                return new Token(Literal.toString(), TokenType.LITERAL);
+            else
+                throw new Exception("Invalid token on line " + Line + ". Literal not closed.");
         }
 
         // Identifier
-        if (Character.isLetter(this.ch)) {
-            StringBuilder id = new StringBuilder();
+        if (Character.isLetter(Ch)) {
+            StringBuilder Id = new StringBuilder();
             do {
-                id.append(ch);
-                this.readch();
-            } while (Character.isLetterOrDigit(this.ch));
-            this.sourceFile.unread(this.ch);
-            this.ch = ' ';
-            String finalId = id.toString();
-            Optional<Token> opToken = tokens.stream().filter(t -> finalId.equals(t.value)).findFirst();
-            Token token;
-            if (opToken.isPresent()) { // Check if is on token list
-                token = opToken.get();
-            } else {
-                token = new Token(id.toString(), TokenType.IDENTIFIER);
-                this.tokens.add(token);
-            }
-            return token;
+                Id.append(Ch);
+            } while (ReadCharLetter());
+            Token Reserved = ReservedWords.get(Id.toString());
+            Token Symbol = SymbolTable.get(Id.toString());
+            if (Reserved != null)
+                return Reserved;
+            else if (Symbol == null)
+                SymbolTable.put(Id.toString(), Symbol = new Identifier(SymbolTable.size(), Id.toString()));
+            return Symbol;
         }
-        throw new Exception("Invalid token on line " + this.line + ". Undefined token started with '" + this.ch + "'");
+
+        if (Ch == (char) -1)
+            return null;
+        else
+            throw new Exception("Invalid token on line " + Line + ". Undefined token started with '" + Ch + "'");
     }
 
-    private void readch() throws IOException {
-        int read = sourceFile.read();
-        this.ch = (char) read;
+    private void ReadChar() throws IOException {
+        Ch = (char) Stream.read();
     }
 
-    private boolean readch(char c) throws IOException {
-        readch();
-        if(this.ch == c){
+    private boolean ReadChar(char ch) throws IOException {
+        ReadChar();
+        if (Ch == ch)
             return true;
-        }
-        this.sourceFile.unread(this.ch);
-        this.ch = ' ';
+        Stream.unread(Ch);
+        return false;
+    }
+
+    private boolean ReadCharNumber() throws IOException {
+        ReadChar();
+        if (Character.isDigit(Ch))
+            return true;
+        Stream.unread(Ch);
+        return false;
+    }
+
+    private boolean ReadCharLetter() throws IOException {
+        ReadChar();
+        if (Character.isLetter(Ch))
+            return true;
+        Stream.unread(Ch);
         return false;
     }
 }

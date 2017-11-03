@@ -1,22 +1,20 @@
 public class Token {
-    String value;
-    TokenType type;
+    public String Value;
+    public TokenType Type;
 
-    Token(String value, TokenType type) {
-        this.value = value;
-        this.type = type;
+    public Token(String value, TokenType type) {
+        Value = value;
+        Type = type;
     }
 
-    Token(TokenType type) {
-        this.type = type;
+    public Token(TokenType type) {
+        Type = type;
     }
 
     @Override
     public String toString() {
-        if(this.type == TokenType.LITERAL || this.type == TokenType.IDENTIFIER)
-            return "(" + this.value + ", " + this.type + ")";
-        if(this.type != null)
-            return "(" + this.type + ")";
-        return this.value;
+        if(this.Type == TokenType.LITERAL || this.Type == TokenType.IDENTIFIER)
+            return "[" + Value + ", " + Type + ")";
+        return "[" + Type + "]";
     }
 }

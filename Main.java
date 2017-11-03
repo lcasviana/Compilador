@@ -5,10 +5,10 @@ class Main {
         PushbackReader sourceFile;
         LexicalAnalyzer lexer;
         try {
-            sourceFile = new PushbackReader(new FileReader(args[0]));
-            lexer = new LexicalAnalyzer(sourceFile);
-            lexer.Analyze();
-            sourceFile.close();
+            //sourceFile = new PushbackReader(new FileReader(args[0]));
+            //lexer = new LexicalAnalyzer(sourceFile);
+            //lexer.Analyze();
+            //sourceFile.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

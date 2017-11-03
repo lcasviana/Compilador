@@ -24,6 +24,7 @@ enum TokenType {
     ASSIGN, // =
     AND, // &&
     OR, // ||
+    NOT, // !
 
     SEMICOLON, // ;
     PARENTHESES_OPEN, // (
