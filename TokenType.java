@@ -1,6 +1,7 @@
-enum TokenType {
+public enum TokenType {
     PROGRAM,
     END,
+    EOF,
     SCAN,
     PRINT,
     INT,

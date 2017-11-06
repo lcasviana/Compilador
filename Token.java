@@ -13,7 +13,8 @@ public class Token {
 
     @Override
     public String toString() {
-        if(this.Type == TokenType.LITERAL || this.Type == TokenType.IDENTIFIER)
+        if (this.Type == TokenType.LITERAL
+         || this.Type == TokenType.IDENTIFIER)
             return "[" + Value + ", " + Type + ")";
         return "[" + Type + "]";
     }

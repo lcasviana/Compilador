@@ -1,20 +1,24 @@
-import java.io.*;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PushbackReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-class LexicalAnalyzer {
+public class LexicalAnalyzer {
+    public boolean Error = false;
     private char Ch;
-    private int Line = 1;
+    public int Line = 1;
     
     private PushbackReader Stream;
 
-    private Map<String, Token> SymbolTable;
-    private Map<String, Token> ReservedWords;
-    private ArrayList<Token> tokens;
+    private Map<String, Token> ReservedWords = new HashMap<String, Token>();
+    public Map<String, Token> SymbolTable = new HashMap<String, Token>();
+    public ArrayList<Token> TokenStream = new ArrayList<>();
 
-    LexicalAnalyzer(FileReader file) throws Exception {
-        Stream = new PushbackReader(file);
+    LexicalAnalyzer(String file) throws IOException {
+        Stream = new PushbackReader(new FileReader(file));
         InitializeReservedWords();
     }
 
@@ -32,18 +36,29 @@ class LexicalAnalyzer {
         ReservedWords.put("while", new Token("while", TokenType.WHILE));
     }
 
-    public void Analyze() throws Exception {
-        ArrayList<Token> TokenStream = new ArrayList<>();
+    public void Analyze() throws IOException {
+        Analyze(true);
+    }
+
+    public void Analyze(boolean debug) throws IOException {
         Token token;
-        while (Ch != (char) -1) {
-            token = GetToken();
-            if (token != null) {
-                TokenStream.add(token);
-                System.out.println(token);
-            }
-        }
+        do {
+            TokenStream.add(token = NextToken());
+            System.out.println(token);
+        } while (token.Type != TokenType.EOF);
         Stream.close();
-        // TODO: Return some shit '3'
+    }
+
+    public Token NextToken() {
+        Token token;
+        try {
+            token = GetToken();
+        } catch (Exception exception) {
+            System.err.println(exception.getMessage());
+            Error = true;
+            return NextToken();
+        }
+        return token;
     }
     
     private Token GetToken() throws Exception {
@@ -166,7 +181,7 @@ class LexicalAnalyzer {
         }
 
         if (Ch == (char) -1)
-            return null;
+            return new Token(TokenType.EOF);
         else
             throw new Exception("Invalid token on line " + Line + ". Undefined token started with '" + Ch + "'");
     }
@@ -193,7 +208,7 @@ class LexicalAnalyzer {
 
     private boolean ReadCharLetter() throws IOException {
         ReadChar();
-        if (Character.isLetter(Ch))
+        if (Character.isLetterOrDigit(Ch))
             return true;
         Stream.unread(Ch);
         return false;
