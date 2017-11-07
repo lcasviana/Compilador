@@ -1,4 +1,4 @@
-public class Number extends Token{
+public class Number extends Token {
     public int Value;
 
     public Number(int value) {

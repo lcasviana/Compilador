@@ -38,7 +38,7 @@ public class SyntacticalAnalyzer {
     public void program() throws Exception {
         Eat(TokenType.PROGRAM);
         declList();
-        stmtList();
+        stmtList(true);
         Eat(TokenType.END);
         Eat(TokenType.EOF);
     }
@@ -52,7 +52,7 @@ public class SyntacticalAnalyzer {
         }
     }
 
-    private boolean stmtList() throws Exception {
+    private boolean stmtList(boolean exception) throws Exception {
         do {
             if (EatIf(TokenType.IDENTIFIER)) { // Assign Stmt
                 Eat(TokenType.ASSIGN);
@@ -61,12 +61,12 @@ public class SyntacticalAnalyzer {
             } else if (EatIf(TokenType.IF)) { // If stmt
                 expression();
                 Eat(TokenType.THEN);
-                stmtList();
+                stmtList(true);
                 if (EatIf(TokenType.ELSE))
-                    stmtList();
+                    stmtList(true);
                 Eat(TokenType.END);
             } else if (EatIf(TokenType.DO)) { // Do while
-                stmtList();
+                stmtList(true);
                 Eat(TokenType.WHILE);
                 expression();
                 Eat(TokenType.END);
@@ -81,71 +81,61 @@ public class SyntacticalAnalyzer {
                 else simpleExpr();
                 Eat(TokenType.PARENTHESES_CLOSE);
                 Eat(TokenType.SEMICOLON);
-            } else
+            } else if (exception)
+                throw new Exception("Expected token xXx not found. Found " + token.Type + " instead on line " + Line + ".");
+            else
                 return false;
-        } while (stmtList());
+        } while (stmtList(false));
         return false;
     }
 
     private void expression() throws Exception {
-        simpleExpr();
-        if (relop());
-            simpleExpr();
-    }
-
-    private void simpleExpr() throws Exception {
-        term();
-        if (addop())
-            term();
-    }
-
-    private void term() throws Exception {
-        factorA();
-        if (mulop())
-            factorA();
-    }
-
-    private void factorA() throws Exception {
-        if (EatIf(TokenType.NOT)
-         || EatIf(TokenType.SUBTRACTION));
-        factor();
-    }
-
-    private void factor() throws Exception {
-        if (EatIf(TokenType.IDENTIFIER)
-         || EatIf(TokenType.INT_CONSTANT))
-            return;
-        if (EatIf(TokenType.PARENTHESES_OPEN)) {
-            expression();
-            Eat(TokenType.PARENTHESES_CLOSE);
-            return;
-        }
-    }
-
-    private boolean relop() throws Exception {
         if (EatIf(TokenType.EQUALS)
          || EatIf(TokenType.GREATER)
          || EatIf(TokenType.GREATERTHAN)
          || EatIf(TokenType.LESS)
          || EatIf(TokenType.LESSTHAN)
          || EatIf(TokenType.DIFFERENT))
-            return true;
-        return false;
+            simpleExpr();
     }
 
-    private boolean addop() throws Exception {
+    private void simpleExpr() throws Exception {
+        if (EatIf(TokenType.NOT)
+         || EatIf(TokenType.SUBTRACTION));
+        factor();
+        mulop();
+        addop();
+    }
+
+    private void factor() throws Exception {
+        if (EatIf(TokenType.IDENTIFIER)
+         || EatIf(TokenType.INT_CONSTANT)
+         || EatIf(TokenType.LITERAL))
+            return;
+        if (EatIf(TokenType.PARENTHESES_OPEN)) {
+            expression();
+            Eat(TokenType.PARENTHESES_CLOSE);
+            return;
+        }
+        throw new Exception("Expected token xXx not found. Found " + token.Type + " instead on line " + Line + ".");
+    }
+
+    private void addop() throws Exception {
         if (EatIf(TokenType.ADDITION)
          || EatIf(TokenType.SUBTRACTION)
-         || EatIf(TokenType.OR))
-            return true;
-        return false;
+         || EatIf(TokenType.OR)) {
+            factor();
+            mulop();
+            addop();
+        }
     }
 
-    private boolean mulop() throws Exception {
+    private void mulop() throws Exception {
         if (EatIf(TokenType.MULTIPLICATION)
          || EatIf(TokenType.DIVISION)
-         || EatIf(TokenType.AND))
-            return true;
-        return false;
+         || EatIf(TokenType.AND)) {
+            factor();
+            mulop();
+        }
     }
 }
