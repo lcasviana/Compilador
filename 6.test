@@ -1,8 +1,7 @@
-$program
+program
     int a, b;
     scan(a) ;
     scan (b);
     print ("resultado: ");
     print(r);
-    int a;
-end#
+end

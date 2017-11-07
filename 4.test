@@ -1,3 +1,4 @@
+program
 int a, aux, b;
      string nome, sobrenome, msg;
      print("Nome: ");
@@ -5,7 +6,7 @@ int a, aux, b;
      print("Sobrenome: ");
      scan (sobrenome);
      msg = "Ola, " + nome + " " +
-    sobrenome + "!";
+sobrenome + "!";
      msg = msg + 1;
      print (msg);
      scan (a);
@@ -16,6 +17,6 @@ int a, aux, b;
      a = aux;
      end;
      print ("Apos a troca: ");
-     out(a);
-     out(b)
+     print(a);
+     print(b);
 end

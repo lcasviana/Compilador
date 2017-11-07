@@ -21,14 +21,12 @@ public class SyntacticalAnalyzer {
     }
 
     private boolean Eat(TokenType type) throws Exception {
-        if (token.Type == type) {
+        if (token.Type != type) {
+            System.err.println("Expected token " + type + " not found. Found " + token.Type + " instead on line " + Line + ".");
+            Error = true;
+        } else
             Advance();
-            return true;
-        }
-        System.err.println("Expected token " + type + " not found. Found " + token.Type + " instead on line " + Line + ".");
-        Error = true;
-        Advance();
-        return Eat(type);
+        return true;
     }
 
     private boolean EatIf(TokenType type) throws Exception {
@@ -91,7 +89,7 @@ public class SyntacticalAnalyzer {
 
     private void expression() throws Exception {
         simpleExpr();
-        if (relop(false));
+        if (relop());
             simpleExpr();
     }
 
@@ -122,10 +120,9 @@ public class SyntacticalAnalyzer {
             Eat(TokenType.PARENTHESES_CLOSE);
             return;
         }
-        throw new Exception("Unexpected token found " + token.Type + " on line " + Line + ". Expected IDENTIFIER, INT_CONSTANT or PARENTHESES_OPEN");
     }
 
-    private boolean relop(boolean Throws) throws Exception {
+    private boolean relop() throws Exception {
         if (EatIf(TokenType.EQUALS)
          || EatIf(TokenType.GREATER)
          || EatIf(TokenType.GREATERTHAN)
@@ -133,8 +130,6 @@ public class SyntacticalAnalyzer {
          || EatIf(TokenType.LESSTHAN)
          || EatIf(TokenType.DIFFERENT))
             return true;
-        if (Throws)
-            throw new Exception("Unexpected token found " + token.Type + " on line " + Line + ". Expected EQUALS, GREATER, GREATERTHAN, LESS, LESSTHAN or DIFFERENT.");
         return false;
     }
 

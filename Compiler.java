@@ -10,7 +10,7 @@ public class Compiler {
             try {
                 Lexer = new LexicalAnalyzer(arg);
                 Syntactical = new SyntacticalAnalyzer(Lexer);
-                if (Syntactical.Error)
+                if (Lexer.Error || Syntactical.Error)
                     System.err.println("File " + arg + " not compiled.");
                 else
                     System.out.println("File " + arg + " compiled with sucess.");
