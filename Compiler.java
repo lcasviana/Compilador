@@ -17,6 +17,7 @@ public class Compiler {
             } catch (FileNotFoundException fileNotFoundException) {
                 System.err.println("File " + arg + " not found.");
             } catch (Exception exception) {
+                System.out.print("File " + arg + ": ");
                 exception.printStackTrace();
             }
         }

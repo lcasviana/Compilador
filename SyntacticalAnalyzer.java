@@ -1,141 +1,179 @@
 public class SyntacticalAnalyzer {
-    public boolean Error;
+    private LexicalAnalyzer lexicalAnalyzer;
     private Token token;
-    public int Line = 1;
-    
-    private LexicalAnalyzer Lexer;
+    private int line;
+    public boolean Error = false;
 
-    public SyntacticalAnalyzer(LexicalAnalyzer lexer) {
-        Lexer = lexer;
-        try {
-            token = Lexer.NextToken();
-            program();
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
+    public SyntacticalAnalyzer(LexicalAnalyzer lexicalAnalyzer) throws Exception
+    {
+        this.lexicalAnalyzer = lexicalAnalyzer;
+        this.token = lexicalAnalyzer.GetToken();
+        this.line = 1;
+        program();
+    }
+
+    private void advance() throws Exception
+    {
+        this.token = lexicalAnalyzer.GetToken();
+        this.line = lexicalAnalyzer.Line;
+    }
+
+    private boolean eatIf(TokenType tokenType) throws Exception
+    {
+        if (this.token != null && this.token.Type == tokenType)
+        {
+            advance();
+            return true;
         }
-    }
-    
-    private void Advance() {
-        token = Lexer.NextToken();
-        Line = Lexer.Line;
-    }
-
-    private boolean Eat(TokenType type) throws Exception {
-        if (token.Type != type) {
-            System.err.println("Expected token " + type + " not found. Found " + token.Type + " instead on line " + Line + ".");
-            Error = true;
-        } else
-            Advance();
-        return true;
-    }
-
-    private boolean EatIf(TokenType type) throws Exception {
-        if (token.Type == type)
-            return Eat(type);
         return false;
     }
 
-    public void program() throws Exception {
-        Eat(TokenType.PROGRAM);
-        declList();
-        stmtList(true);
-        Eat(TokenType.END);
-        Eat(TokenType.EOF);
+    private boolean eat(TokenType tokenType) throws Exception
+    {
+        if (this.token != null && this.token.Type == tokenType)
+        {
+            advance();
+            return true;
+        }
+        this.Error = true;
+        throw new Exception("Expected token '"+ tokenType +"' not found. Found '"+token.Type+"' instead on line "+line+".");
     }
 
-    private void declList() throws Exception {
-        while (EatIf(TokenType.INT)
-            || EatIf(TokenType.STRING)) { // Type
-            while (Eat(TokenType.IDENTIFIER)
-                && EatIf(TokenType.COMMA));
-            Eat(TokenType.SEMICOLON);
+    public void program() throws Exception
+    {
+        eat(TokenType.PROGRAM);
+        declList();
+        stmtList(true);
+        eat(TokenType.END);
+        eat(TokenType.EOF);
+    }
+
+    private void declList() throws Exception
+    {
+        while (eatIf(TokenType.INT) || eatIf(TokenType.STRING)) // Type
+        {
+            do
+            {
+                eat(TokenType.IDENTIFIER);
+            } while (eatIf(TokenType.COMMA));
+            eat(TokenType.SEMICOLON);
         }
     }
 
-    private boolean stmtList(boolean exception) throws Exception {
-        do {
-            if (EatIf(TokenType.IDENTIFIER)) { // Assign Stmt
-                Eat(TokenType.ASSIGN);
+    private boolean stmtList(boolean throwsException) throws Exception
+    {
+        do
+        {
+            if (eatIf(TokenType.IDENTIFIER)) // Assign Stmt
+            {
+                eat(TokenType.ASSIGN);
                 simpleExpr();
-                Eat(TokenType.SEMICOLON);
-            } else if (EatIf(TokenType.IF)) { // If stmt
+                eat(TokenType.SEMICOLON);
+            }
+            else if (eatIf(TokenType.IF)) // If stmt
+            {
                 expression();
-                Eat(TokenType.THEN);
+                eat(TokenType.THEN);
                 stmtList(true);
-                if (EatIf(TokenType.ELSE))
+                if (eatIf(TokenType.ELSE))
+                {
                     stmtList(true);
-                Eat(TokenType.END);
-            } else if (EatIf(TokenType.DO)) { // Do while
+                }
+                eat(TokenType.END);
+            }
+            else if (eatIf(TokenType.DO)) // Do while
+            {
                 stmtList(true);
-                Eat(TokenType.WHILE);
+                eat(TokenType.WHILE);
                 expression();
-                Eat(TokenType.END);
-            } else if (EatIf(TokenType.SCAN)) { // scan();
-                Eat(TokenType.PARENTHESES_OPEN);
-                Eat(TokenType.IDENTIFIER);
-                Eat(TokenType.PARENTHESES_CLOSE);
-                Eat(TokenType.SEMICOLON);
-            } else if (EatIf(TokenType.PRINT)) { // print();
-                Eat(TokenType.PARENTHESES_OPEN);
-                if (EatIf(TokenType.LITERAL));
+                eat(TokenType.END);
+            }
+            else if (eatIf(TokenType.SCAN)) // scan();
+            {
+                eat(TokenType.PARENTHESES_OPEN);
+                eat(TokenType.IDENTIFIER);
+                eat(TokenType.PARENTHESES_CLOSE);
+                eat(TokenType.SEMICOLON);
+            }
+            else if (eatIf(TokenType.PRINT)) // print();
+            {
+                eat(TokenType.PARENTHESES_OPEN);
+                if (eatIf(TokenType.LITERAL)) { }
                 else simpleExpr();
-                Eat(TokenType.PARENTHESES_CLOSE);
-                Eat(TokenType.SEMICOLON);
-            } else if (exception)
-                throw new Exception("Expected token xXx not found. Found " + token.Type + " instead on line " + Line + ".");
+                eat(TokenType.PARENTHESES_CLOSE);
+                eat(TokenType.SEMICOLON);
+            }
+            else if (throwsException)
+            {
+                throw new Exception("Unexpected token '"+token.Type+"' found on line {line}.");
+            }
             else
+            {
                 return false;
+            }
         } while (stmtList(false));
         return false;
     }
 
-    private void expression() throws Exception {
-        if (EatIf(TokenType.EQUALS)
-         || EatIf(TokenType.GREATER)
-         || EatIf(TokenType.GREATERTHAN)
-         || EatIf(TokenType.LESS)
-         || EatIf(TokenType.LESSTHAN)
-         || EatIf(TokenType.DIFFERENT))
+    private void expression() throws Exception
+    {
+        simpleExpr();
+        if (eatIf(TokenType.EQUALS)
+            || eatIf(TokenType.GREATER)
+            || eatIf(TokenType.GREATERTHAN)
+            || eatIf(TokenType.LESS)
+            || eatIf(TokenType.LESSTHAN)
+            || eatIf(TokenType.DIFFERENT))
+        {
             simpleExpr();
+        }
     }
 
-    private void simpleExpr() throws Exception {
-        if (EatIf(TokenType.NOT)
-         || EatIf(TokenType.SUBTRACTION));
+    private void simpleExpr() throws Exception
+    {
+        if (eatIf(TokenType.NOT) || eatIf(TokenType.SUBTRACTION)) { }
         factor();
         mulop();
         addop();
     }
 
-    private void factor() throws Exception {
-        if (EatIf(TokenType.IDENTIFIER)
-         || EatIf(TokenType.INT_CONSTANT)
-         || EatIf(TokenType.LITERAL))
-            return;
-        if (EatIf(TokenType.PARENTHESES_OPEN)) {
-            expression();
-            Eat(TokenType.PARENTHESES_CLOSE);
-            return;
+    private void mulop() throws Exception
+    {
+        if (eatIf(TokenType.MULTIPLICATION)
+            || eatIf(TokenType.DIVISION)
+            || eatIf(TokenType.AND))
+        {
+            factor();
+            mulop();
         }
-        throw new Exception("Expected token xXx not found. Found " + token.Type + " instead on line " + Line + ".");
     }
 
-    private void addop() throws Exception {
-        if (EatIf(TokenType.ADDITION)
-         || EatIf(TokenType.SUBTRACTION)
-         || EatIf(TokenType.OR)) {
+    private void addop() throws Exception
+    {
+        if (eatIf(TokenType.ADDITION)
+            || eatIf(TokenType.SUBTRACTION)
+            || eatIf(TokenType.OR))
+        {
             factor();
             mulop();
             addop();
         }
     }
 
-    private void mulop() throws Exception {
-        if (EatIf(TokenType.MULTIPLICATION)
-         || EatIf(TokenType.DIVISION)
-         || EatIf(TokenType.AND)) {
-            factor();
-            mulop();
+    private void factor() throws Exception
+    {
+        if (eatIf(TokenType.IDENTIFIER)
+            || eatIf(TokenType.INT_CONSTANT)
+            || eatIf(TokenType.LITERAL))
+        {
+            return;
         }
+        if (eatIf(TokenType.PARENTHESES_OPEN))
+        {
+            expression();
+            eat(TokenType.PARENTHESES_CLOSE);
+            return;
+        }
+        throw new Exception("Unexpected token found '"+token.Type+"' on line "+line+". Expected "+TokenType.IDENTIFIER+", "+TokenType.INT_CONSTANT+", "+TokenType.LITERAL+" or "+TokenType.PARENTHESES_OPEN);
     }
 }

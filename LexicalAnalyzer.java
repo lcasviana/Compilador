@@ -61,7 +61,7 @@ public class LexicalAnalyzer {
         return token;
     }
     
-    private Token GetToken() throws Exception {
+    public Token GetToken() throws Exception {
         ReadChar();
         
         // Spaces and breaklines
