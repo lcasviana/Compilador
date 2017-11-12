@@ -13,7 +13,7 @@ public class Compiler {
                 if (Lexer.Error || Syntactical.Error)
                     System.err.println("File " + arg + " not compiled.");
                 else
-                    System.out.println("File " + arg + " compiled with sucess.");
+                    System.out.println("File " + arg + " compiled with success.");
             } catch (FileNotFoundException fileNotFoundException) {
                 System.err.println("File " + arg + " not found.");
             } catch (Exception exception) {

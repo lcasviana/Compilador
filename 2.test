@@ -1,8 +1,9 @@
 program
     int a, c;
-    string d, e;
-    a = 0;d = 35;
+    int d, e;
+    a = 0; d = 35;
     c = d / 12;
+
     scan (a);
     scan (c);
     b = a * a;

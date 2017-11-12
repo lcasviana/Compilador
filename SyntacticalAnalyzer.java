@@ -131,7 +131,6 @@ public class SyntacticalAnalyzer {
 
     private void simpleExpr() throws Exception
     {
-        if (eatIf(TokenType.NOT) || eatIf(TokenType.SUBTRACTION)) { }
         factor();
         mulop();
         addop();
@@ -162,6 +161,7 @@ public class SyntacticalAnalyzer {
 
     private void factor() throws Exception
     {
+        if (eatIf(TokenType.NOT) || eatIf(TokenType.SUBTRACTION)) { }
         if (eatIf(TokenType.IDENTIFIER)
             || eatIf(TokenType.INT_CONSTANT)
             || eatIf(TokenType.LITERAL))
