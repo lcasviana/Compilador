@@ -20,50 +20,55 @@ public class SyntacticalAnalyzer {
         this.line = lexicalAnalyzer.Line;
     }
 
-    private boolean eatIf(TokenType tokenType) throws Exception
+    private boolean eatIf(TokenType tokenType, boolean checkType) throws Exception
     {
         if (this.token != null && this.token.Type == tokenType)
         {
+            if(checkType && this.token.Type == TokenType.IDENTIFIER && this.token.SemanticType == SemanticTokenType.NULL){
+                throw new Exception("Using undeclared variable '"+token.Value+"'on line " + line);
+            }
             advance();
             return true;
         }
         return false;
     }
 
-    private boolean eat(TokenType tokenType) throws Exception
+    private boolean eat(TokenType tokenType, boolean checkType) throws Exception
     {
         if (this.token != null && this.token.Type == tokenType)
         {
+            if(checkType && this.token.Type == TokenType.IDENTIFIER && this.token.SemanticType == SemanticTokenType.NULL){
+                throw new Exception("Using undeclared variable '"+token.Value+"'on line " + line);
+            }
             advance();
             return true;
         }
-        this.Error = true;
         throw new Exception("Expected token '"+ tokenType +"' not found. Found '"+token.Type+"' instead on line "+line+".");
     }
 
     public void program() throws Exception
     {
-        eat(TokenType.PROGRAM);
+        eat(TokenType.PROGRAM, false);
         declList();
         stmtList(true);
-        eat(TokenType.END);
-        eat(TokenType.EOF);
+        eat(TokenType.END, false);
+        eat(TokenType.EOF, false);
     }
 
     private void declList() throws Exception
     {
-        while (eatIf(TokenType.INT) || eatIf(TokenType.STRING)) // Type
+        while (eatIf(TokenType.INT, false) || eatIf(TokenType.STRING, false)) // Type
         {
             SemanticTokenType type = lastToken.getSemanticTypeFromType();
             do
             {
-                eat(TokenType.IDENTIFIER);
-                if(lexicalAnalyzer.SymbolTable.get(lastToken.Value).SemanticType != null){
-                    throw new Exception("Semantic Exception: " + lastToken + " is already declared");
+                eat(TokenType.IDENTIFIER, false);
+                if(lexicalAnalyzer.SymbolTable.get(lastToken.Value).SemanticType != SemanticTokenType.NULL) {
+                    throw new Exception("Semantic Exception: " + lastToken.Value + " on line "+ line +" is already declared");
                 }
                 lastToken.SemanticType = type;
-            } while (eatIf(TokenType.COMMA));
-            eat(TokenType.SEMICOLON);
+            } while (eatIf(TokenType.COMMA, false));
+            eat(TokenType.SEMICOLON, false);
         }
     }
 
@@ -71,83 +76,87 @@ public class SyntacticalAnalyzer {
     {
         do
         {
-            if (eatIf(TokenType.IDENTIFIER)) // Assign Stmt
+            if (eatIf(TokenType.IDENTIFIER, true)) // Assign Stmt
             {
-                eat(TokenType.ASSIGN);
-                simpleExpr();
-                eat(TokenType.SEMICOLON);
+                SemanticTokenType tokenType = lastToken.SemanticType;
+                eat(TokenType.ASSIGN, false);
+                SemanticTokenType exprType = simpleExpr();
+                if(tokenType != exprType) {
+                    throw new Exception("Semantic Error: Expression ("+tokenType+") and Variable ("+exprType+") have incompatible type on line " + line);
+                }
+                eat(TokenType.SEMICOLON, false);
             }
-            else if (eatIf(TokenType.IF)) // If stmt
+            else if (eatIf(TokenType.IF, false)) // If stmt
             {
                 expression();
-                eat(TokenType.THEN);
+                eat(TokenType.THEN, false);
                 stmtList(true);
-                if (eatIf(TokenType.ELSE))
+                if (eatIf(TokenType.ELSE, false))
                 {
                     stmtList(true);
                 }
-                eat(TokenType.END);
+                eat(TokenType.END, false);
             }
-            else if (eatIf(TokenType.DO)) // Do while
+            else if (eatIf(TokenType.DO, false)) // Do while
             {
                 stmtList(true);
-                eat(TokenType.WHILE);
+                eat(TokenType.WHILE, false);
                 expression();
-                eat(TokenType.END);
+                eat(TokenType.END, false);
             }
-            else if (eatIf(TokenType.SCAN)) // scan();
+            else if (eatIf(TokenType.SCAN, false)) // scan();
             {
-                eat(TokenType.PARENTHESES_OPEN);
-                eat(TokenType.IDENTIFIER);
-                eat(TokenType.PARENTHESES_CLOSE);
-                eat(TokenType.SEMICOLON);
+                eat(TokenType.PARENTHESES_OPEN, false);
+                eat(TokenType.IDENTIFIER, true);
+                eat(TokenType.PARENTHESES_CLOSE, false);
+                eat(TokenType.SEMICOLON, false);
             }
-            else if (eatIf(TokenType.PRINT)) // print();
+            else if (eatIf(TokenType.PRINT, false)) // print();
             {
-                eat(TokenType.PARENTHESES_OPEN);
-                if (eatIf(TokenType.LITERAL)) { }
+                eat(TokenType.PARENTHESES_OPEN, false);
+                if (eatIf(TokenType.LITERAL, false)) { }
                 else simpleExpr();
-                eat(TokenType.PARENTHESES_CLOSE);
-                eat(TokenType.SEMICOLON);
+                eat(TokenType.PARENTHESES_CLOSE, false);
+                eat(TokenType.SEMICOLON, false);
             }
-            else if (throwsException)
-            {
-                throw new Exception("Unexpected token '"+token.Type+"' found on line {line}.");
+            else if (throwsException) {
+                throw new Exception("Unexpected token '"+token.Type+"' found on line "+line+".");
             }
-            else
-            {
+            else {
                 return false;
             }
         } while (stmtList(false));
         return false;
     }
 
-    private void expression() throws Exception
+    private SemanticTokenType expression() throws Exception
     {
-        simpleExpr();
-        if (eatIf(TokenType.EQUALS)
-            || eatIf(TokenType.GREATER)
-            || eatIf(TokenType.GREATERTHAN)
-            || eatIf(TokenType.LESS)
-            || eatIf(TokenType.LESSTHAN)
-            || eatIf(TokenType.DIFFERENT))
+        SemanticTokenType type = simpleExpr();
+        if (eatIf(TokenType.EQUALS, false)
+            || eatIf(TokenType.GREATER, false)
+            || eatIf(TokenType.GREATERTHAN, false)
+            || eatIf(TokenType.LESS, false)
+            || eatIf(TokenType.LESSTHAN, false)
+            || eatIf(TokenType.DIFFERENT, false))
         {
             simpleExpr();
         }
+        return type;
     }
 
-    private void simpleExpr() throws Exception
+    private SemanticTokenType simpleExpr() throws Exception
     {
-        factor();
+        SemanticTokenType type = factor();
         mulop();
         addop();
+        return type;
     }
 
     private void mulop() throws Exception
     {
-        if (eatIf(TokenType.MULTIPLICATION)
-            || eatIf(TokenType.DIVISION)
-            || eatIf(TokenType.AND))
+        if (eatIf(TokenType.MULTIPLICATION, false)
+            || eatIf(TokenType.DIVISION, false)
+            || eatIf(TokenType.AND, false))
         {
             factor();
             mulop();
@@ -156,9 +165,9 @@ public class SyntacticalAnalyzer {
 
     private void addop() throws Exception
     {
-        if (eatIf(TokenType.ADDITION)
-            || eatIf(TokenType.SUBTRACTION)
-            || eatIf(TokenType.OR))
+        if (eatIf(TokenType.ADDITION, false)
+            || eatIf(TokenType.SUBTRACTION, false)
+            || eatIf(TokenType.OR, false))
         {
             factor();
             mulop();
@@ -166,20 +175,21 @@ public class SyntacticalAnalyzer {
         }
     }
 
-    private void factor() throws Exception
+    private SemanticTokenType factor() throws Exception
     {
-        if (eatIf(TokenType.NOT) || eatIf(TokenType.SUBTRACTION)) { }
-        if (eatIf(TokenType.IDENTIFIER)
-            || eatIf(TokenType.INT_CONSTANT)
-            || eatIf(TokenType.LITERAL))
+        if (eatIf(TokenType.NOT, false) || eatIf(TokenType.SUBTRACTION, false)) { }
+        if (eatIf(TokenType.IDENTIFIER, true)
+            || eatIf(TokenType.INT_CONSTANT, false)
+            || eatIf(TokenType.LITERAL, false))
         {
-            return;
+            if(lastToken.Type == TokenType.IDENTIFIER) return lastToken.SemanticType;
+            else return lastToken.getSemanticTypeFromType();
         }
-        if (eatIf(TokenType.PARENTHESES_OPEN))
+        if (eatIf(TokenType.PARENTHESES_OPEN, false))
         {
-            expression();
-            eat(TokenType.PARENTHESES_CLOSE);
-            return;
+            SemanticTokenType type = expression();
+            eat(TokenType.PARENTHESES_CLOSE, false);
+            return type;
         }
         throw new Exception("Unexpected token found '"+token.Type+"' on line "+line+". Expected "+TokenType.IDENTIFIER+", "+TokenType.INT_CONSTANT+", "+TokenType.LITERAL+" or "+TokenType.PARENTHESES_OPEN);
     }

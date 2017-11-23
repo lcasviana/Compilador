@@ -4,17 +4,19 @@ public class Token {
     public SemanticTokenType SemanticType;
     
     public Token(String value, TokenType type) {
+        this(type);
         Value = value;
-        Type = type;
     }
 
     public Token(TokenType type) {
         Type = type;
+        SemanticType = SemanticTokenType.NULL;
     }
 
     public SemanticTokenType getSemanticTypeFromType() {
-        if(Type == TokenType.INT) return SemanticTokenType.INT;
-        else return SemanticTokenType.STRING;
+        if(Type == TokenType.INT || Type == TokenType.INT_CONSTANT) return SemanticTokenType.INT;
+        else if(Type == TokenType.STRING || Type == TokenType.LITERAL) return SemanticTokenType.STRING;
+        else return SemanticTokenType.ERROR;
     }
 
     @Override
