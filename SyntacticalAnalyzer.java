@@ -1,6 +1,7 @@
 public class SyntacticalAnalyzer {
     private LexicalAnalyzer lexicalAnalyzer;
     private Token token;
+    private Token lastToken;
     private int line;
     public boolean Error = false;
 
@@ -14,6 +15,7 @@ public class SyntacticalAnalyzer {
 
     private void advance() throws Exception
     {
+        this.lastToken = this.token;
         this.token = lexicalAnalyzer.GetToken();
         this.line = lexicalAnalyzer.Line;
     }
@@ -52,9 +54,14 @@ public class SyntacticalAnalyzer {
     {
         while (eatIf(TokenType.INT) || eatIf(TokenType.STRING)) // Type
         {
+            SemanticTokenType type = lastToken.getSemanticTypeFromType();
             do
             {
                 eat(TokenType.IDENTIFIER);
+                if(lexicalAnalyzer.SymbolTable.get(lastToken.Value).SemanticType != null){
+                    throw new Exception("Semantic Exception: " + lastToken + " is already declared");
+                }
+                lastToken.SemanticType = type;
             } while (eatIf(TokenType.COMMA));
             eat(TokenType.SEMICOLON);
         }

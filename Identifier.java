@@ -1,6 +1,6 @@
 public class Identifier extends Token {
     public int Position;
-
+    
     public Identifier(int position, String value) {
         super(value, TokenType.IDENTIFIER);
         Position = position;
@@ -8,6 +8,6 @@ public class Identifier extends Token {
     
     @Override
     public String toString() {
-        return "[" + Position + ", " + Value + ", " + Type + "]";
+        return "[" + Position + ", " + Value + ", " + Type + ", " + SemanticType + "]";
     }
 }
