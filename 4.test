@@ -7,7 +7,7 @@ program
     scan (sobrenome);
     msg = "Ola, " + nome + " " +
     sobrenome + "!";
-    msg = msg + 1;
+    msg = msg / "";
     print (msg);
     scan (a);
     scan(b);

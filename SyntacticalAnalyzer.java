@@ -146,33 +146,63 @@ public class SyntacticalAnalyzer {
 
     private SemanticTokenType simpleExpr() throws Exception
     {
-        SemanticTokenType type = factor();
-        mulop();
-        addop();
-        return type;
+        SemanticTokenType factorType = factor();
+        SemanticTokenType mulopType = mulop();
+        SemanticTokenType addopType = addop();
+        if (mulopType != SemanticTokenType.NULL
+         && factorType !=  mulopType)
+        {
+            throw new Exception("Semantic Error: Expression ("+mulopType+") and Expression ("+factorType+") have incompatible type on line " + line);
+        }
+        if (addopType != SemanticTokenType.NULL
+         && factorType !=  addopType)
+        {
+            throw new Exception("Semantic Error: Expression ("+addopType+") and Expression ("+factorType+") have incompatible type on line " + line);
+        }
+        return factorType;
     }
 
-    private void mulop() throws Exception
+    private SemanticTokenType mulop() throws Exception
     {
+        SemanticTokenType type = SemanticTokenType.NULL;
         if (eatIf(TokenType.MULTIPLICATION, false)
             || eatIf(TokenType.DIVISION, false)
             || eatIf(TokenType.AND, false))
         {
-            factor();
-            mulop();
+            SemanticTokenType factorType = factor();
+            SemanticTokenType mulopType = mulop();
+            if (mulopType != SemanticTokenType.NULL && factorType !=  mulopType)
+            {
+                throw new Exception("Semantic Error: Expression ("+mulopType+") and Expression ("+factorType+") have incompatible type on line " + line);
+            }
+            type = factorType;
         }
+        return type;
     }
 
-    private void addop() throws Exception
+    private SemanticTokenType addop() throws Exception
     {
+        SemanticTokenType type = SemanticTokenType.NULL;
         if (eatIf(TokenType.ADDITION, false)
             || eatIf(TokenType.SUBTRACTION, false)
             || eatIf(TokenType.OR, false))
         {
-            factor();
-            mulop();
-            addop();
+            SemanticTokenType factorType = factor();
+            SemanticTokenType mulopType = mulop();
+            SemanticTokenType addopType = addop();
+            if (mulopType != SemanticTokenType.NULL
+             && factorType !=  mulopType)
+            {
+                throw new Exception("Semantic Error: Expression ("+mulopType+") and Expression ("+factorType+") have incompatible type on line " + line);
+            }
+            if (addopType != SemanticTokenType.NULL
+             && factorType !=  addopType)
+            {
+                throw new Exception("Semantic Error: Expression ("+addopType+") and Expression ("+factorType+") have incompatible type on line " + line);
+            }
+            type = factorType;
         }
+        return type;
     }
 
     private SemanticTokenType factor() throws Exception
